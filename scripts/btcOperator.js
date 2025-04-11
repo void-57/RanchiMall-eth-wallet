@@ -9,7 +9,7 @@
     util.BTC_to_Sat = value => parseInt(value * SATOSHI_IN_BTC);
 
     const checkIfTor = btcOperator.checkIfTor = () => {
-        return fetch('https://check.torproject.org/api/ip')
+        return fetch('https://check.torproject.org/api/ip',{mode:"no-cors"})
             .then(res => res.json())
             .then(res => {
                 return res.IsTor
