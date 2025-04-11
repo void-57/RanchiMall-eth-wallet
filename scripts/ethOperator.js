@@ -280,6 +280,51 @@
       return error;
     }
   }
+  const getTransactionHistory = ethOperator.getTransactionHistory = async (address) => {
+    const url = `https://api.etherscan.io/api?module=account&action=txlist` +
+    `&address=${address}&startblock=0&endblock=99999999&sort=desc&apikey=HZR8IPCR4NZ483JDPGGNSV8HGQMNYQPACW`;
+
+const response = await fetch(url);
+const data = await response.json();
+
+if (data.status !== "1") {
+throw new Error(data.message || "Failed to fetch transaction history");
+}
+
+return data.result; 
+
+  }
+  const getTransactionDetails=ethOperator.getTransactionDetails = async function(txHash) {
+    try {
+      // First try to get the transaction from the blockchain
+      const provider = getProvider();
+      const tx = await provider.getTransaction(txHash);
+      
+      if (!tx) return null;
+      
+      // If transaction is confirmed, get the receipt
+      let receipt = null;
+      if (tx.blockNumber) {
+        receipt = await provider.getTransactionReceipt(txHash);
+      }
+      
+      // Get transaction timestamp if available
+      let timestamp = null;
+      if (tx.blockNumber) {
+        const block = await provider.getBlock(tx.blockNumber);
+        timestamp = block.timestamp * 1000; // Convert to milliseconds
+      }
+      
+      return {
+        ...tx,
+        ...receipt,
+        timeStamp: timestamp
+      };
+    } catch (error) {
+      console.error("Error in getTransactionDetails:", error);
+      throw error;
+    }
+  };
   const getTokenBalance = ethOperator.getTokenBalance = async (address, token, { contractAddress } = {}) => {
     try {
       // if (!window.ethereum.isConnected()) {
