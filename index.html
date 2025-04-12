@@ -1562,13 +1562,14 @@
                       ></p>
                     </div>
                   </div>
-                    <button
-                     class="button button--small button--colored margin-top-1"
-                     style="display: block; margin-left: auto; margin-right: auto;"
-                     onclick="router.routeTo('#/balance')">
-                     Back to Balance
-                    </button> 
-                  </div>
+                  <button
+                    class="button button--small button--colored margin-top-1"
+                    style="display: block; margin-left: auto; margin-right: auto;"
+                    onclick="router.routeTo('#/balance')"
+                  >
+                    Back to Balance
+                  </button>
+                </div>
               `
             );
             getRef("tx_status_indicator").style.backgroundColor = statusColor;
@@ -1581,7 +1582,11 @@
 
             getRef("tx_value").textContent = `${value} ETH`;
             getRef("tx_gasPrice").textContent = `${gasPrice} Gwei`;
-            getRef("tx_Fee").textContent = `${(gasUsed*gasPrice*1e9).toFixed(18)} ETH`;
+            getRef("tx_Fee").textContent = `${(
+              gasUsed *
+              gasPrice *
+              1e9
+            ).toFixed(18)} ETH`;
             getRef("tx_timestamp").textContent = timestamp;
           })
           .catch((error) => {
