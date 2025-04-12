@@ -940,50 +940,49 @@
             icon = `<svg class="icon received" xmlns="http://www.w3.org/2000/svg" height="24px" viewBox="0 0 24 24" width="24px" fill="#000000"><path d="M0 0h24v24H0V0z" fill="none"/><path d="M20 12l-1.41-1.41L13 16.17V4h-2v12.17l-5.58-5.59L4 12l8 8 8-8z"/></svg>`;
           }
 
-          // Create HTML for the transaction card
           transactionCard.innerHTML = `
-            <div class="flex gap-1 align-center w-100 padding-0-5" style="border-radius: 0.5rem; border: 1px solid rgba(var(--text-color), 0.1); padding: 0.75rem; box-shadow: 0 2px 4px rgba(0,0,0,0.05);">
-              <div class="transaction__icon flex align-center justify-center" style="background-color: ${
-                transactionDetails.type === "out"
-                  ? "rgba(255,75,75,0.1)"
-                  : "rgba(75,200,75,0.1)"
-              }; border-radius: 50%; width: 40px; height: 40px; padding: 8px;">
-          ${icon}
-              </div>
-              <div class="grid gap-0-5 flex-1">
-          <div class="flex align-center space-between">
-            <div class="transaction__type" style="font-weight: 500;">
-              ${transactionDetails.type === "out" ? "Sent" : "Received"}
-            </div>
-            <time style="color: rgba(var(--text-color), 0.6); font-size: 0.85rem;">${getFormattedTime(
-              transactionDetails.time
-            )}</time>
+    <div class="flex gap-1 align-center w-100 padding-0-5" style="border-radius: 0.5rem; border: 1px solid rgba(var(--text-color), 0.1); padding: 0.75rem; box-shadow: 0 2px 4px rgba(0,0,0,0.05);">
+      <div class="transaction__icon flex align-center justify-center" style="background-color: ${
+        transactionDetails.type === "out"
+          ? "rgba(255,75,75,0.1)"
+          : "rgba(75,200,75,0.1)"
+      }; border-radius: 50%; min-width: 40px; height: 40px; padding: 8px;">
+        ${icon}
+      </div>
+      <div class="grid gap-0-5 flex-1">
+        <div class="flex align-center space-between flex-wrap">
+          <div class="transaction__type" style="font-weight: 500; margin-right: 8px;">
+            ${transactionDetails.type === "out" ? "Sent" : "Received"}
           </div>
-          <div class="flex align-center space-between">
-            <div class="transaction__amount amount-shown" style="font-weight: 600; color: ${
-              transactionDetails.type === "out"
-                ? "var(--color-danger, #ff4b4b)"
-                : "var(--color-success, #4bc84b)"
-            };">
-              ${
-                transactionDetails.type === "out" ? "-" : "+"
-              } ${transactionDetails.amount.toFixed(20)} ETH
-            </div>
-            <div class="transaction__status" style="font-size: 0.85rem; color: rgba(var(--text-color), ${
-              transactionDetails.block < 0 ? "0.5" : "0.7"
-            });">
-              ${
-                transactionDetails.block < 0
-                  ? "Pending"
-                  : transactionDetails.confirmations > 6
-                  ? "Confirmed"
-                  : `${transactionDetails.confirmations} confirmations`
-              }
-            </div>
+          <time style="color: rgba(var(--text-color), 0.6); font-size: 0.85rem;">${getFormattedTime(
+            transactionDetails.time
+          )}</time>
+        </div>
+        <div class="flex align-center space-between flex-wrap">
+          <div class="transaction__amount amount-shown" style="font-weight: 600; color: ${
+            transactionDetails.type === "out"
+              ? "var(--color-danger, #ff4b4b)"
+              : "var(--color-success, #4bc84b)"
+          }; margin-right: 8px; text-overflow: ellipsis; overflow: hidden; max-width: 100%;">
+            ${transactionDetails.type === "out" ? "-" : "+"} ${Number(
+            transactionDetails.amount
+          ).toFixed(6)} ETH
           </div>
-              </div>
-            </div>
-          `;
+          <div class="transaction__status" style="font-size: 0.85rem; color: rgba(var(--text-color), ${
+            transactionDetails.block < 0 ? "0.5" : "0.7"
+          });">
+            ${
+              transactionDetails.block < 0
+                ? "Pending"
+                : transactionDetails.confirmations > 6
+                ? "Confirmed"
+                : `${transactionDetails.confirmations} confirmations`
+            }
+          </div>
+        </div>
+      </div>
+    </div>
+  `;
 
           // Add click event to show transaction details
           transactionCard.addEventListener("click", () => {
