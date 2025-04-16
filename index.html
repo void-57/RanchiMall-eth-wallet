@@ -1596,6 +1596,7 @@
             }
             if (getRef("tx_timestamp"))
               getRef("tx_timestamp").textContent = timestamp;
+              convertAllDisplayedCurrency();
           })
           .catch((error) => {
             console.error("Error:", error);

@@ -269,6 +269,17 @@
     });
   }
   // connectToMetaMask();
+
+  const getEthExchangeRates = (ethOperator.getEthExchangeRates = async () => {
+    const res = await fetch(
+      "https://api.coingecko.com/api/v3/simple/price?ids=ethereum&vs_currencies=usd,inr"
+    );
+    const data = await res.json();
+    return {
+      usd: data.ethereum.usd,
+      inr: data.ethereum.inr,
+    };
+  });
   const getBalance = (ethOperator.getBalance = async (address) => {
     try {
       if (!address || !isValidAddress(address))
