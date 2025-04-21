@@ -1532,6 +1532,10 @@ input:checked + .toggle-slider:before {
   cursor: pointer;
   outline: none;
 }
+.margin-left-auto + .margin-left-auto {
+  display: none !important;
+}
+
 
 .filter-control select:focus {
   border-color: var(--accent-color);
