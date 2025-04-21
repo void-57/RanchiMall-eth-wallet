@@ -911,33 +911,24 @@
           );
           if (container) {
             const existingToggle = container.querySelector("sm-switch");
-            if (!existingToggle) {
-              const toggleDiv = document.createElement("div");
-              toggleDiv.className = "margin-left-auto";
-              toggleDiv.innerHTML = `
-              <sm-switch id="valuation_toggle" ${
-                showCurrentValue ? "checked" : ""
-              }>
-                <p slot="left" class="margin-right-0-5">
-                  Show current value
-                </p>
-              </sm-switch>
-            `;
-              container.appendChild(toggleDiv);
+            existingToggles.forEach((toggle) => toggle.remove());
+            const toggleDiv = document.createElement("div");
+            toggleDiv.className = "margin-left-auto";
+            toggleDiv.innerHTML = `
+        <sm-switch id="valuation_toggle" ${showCurrentValue ? "checked" : ""}>
+          <p slot="left" class="margin-right-0-5">
+            Show current value
+          </p>
+        </sm-switch>
+      `;
+            container.appendChild(toggleDiv);
 
-              // Add event handler to the new toggle
-              document
-                .getElementById("valuation_toggle")
-                .addEventListener("change", (e) => {
-                  handleValuationTypeChange(e.target.checked);
-                });
-            } else {
-              if (showCurrentValue) {
-                existingToggle.setAttribute("checked", "");
-              } else {
-                existingToggle.removeAttribute("checked");
-              }
-            }
+            // Add event handler to the new toggle
+            document
+              .getElementById("valuation_toggle")
+              .addEventListener("change", (e) => {
+                handleValuationTypeChange(e.target.checked);
+              });
           }
         }
       }
@@ -966,24 +957,9 @@
             createRipple(e, e.target.closest("button, .interactive"));
           }
         });
-        const stored = localStorage.getItem("preferredCurrency");
-        if (stored) {
-          currentCurrency = stored;
-          if (
-            stored !== "eth" &&
-            (exchangeRates.usd === 0 || exchangeRates.inr === 0)
-          ) {
-            fetchExchangeRates().then(() => {
-              convertAllDisplayedCurrency();
-              syncCurrencySelector();
-            });
-          } else {
-            convertAllDisplayedCurrency();
-            syncCurrencySelector();
-          }
-        } else {
-          syncCurrencySelector();
-        }
+        currentCurrency = "eth";
+        localStorage.setItem("preferredCurrency", "eth");
+        syncCurrencySelector();
 
         compactIDB
           .initDB("floEthereum", {
