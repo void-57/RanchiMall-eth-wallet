@@ -911,7 +911,7 @@
           );
           if (container) {
             const existingToggle = container.querySelector("sm-switch");
-            
+
             const toggleDiv = document.createElement("div");
             toggleDiv.className = "margin-left-auto";
             toggleDiv.innerHTML = `
@@ -1250,7 +1250,10 @@
             transactionDetails.block < 0 ? "unconfirmed-tx" : ""
           }`;
           transactionCard.dataset.txid = transactionDetails.txid;
-
+          transactionCard.style.cursor = "pointer";
+          transactionCard.onclick = () => {
+            window.location.hash = `#/tdx/${transactionDetails.txid}`;
+          };
           //  icon based on transaction type
           let icon;
           if (transactionDetails.type === "out") {
@@ -1274,7 +1277,7 @@
             ? shortenAddress(transactionDetails.to)
             : "";
           const txHashShort = shortenAddress(transactionDetails.txid);
-
+           
           transactionCard.innerHTML = `
                   <div class="flex gap-1 align-center w-100 padding-0-5" style="border-radius: 0.5rem; border: 1px solid rgba(var(--text-color), 0.1); padding: 0.75rem; box-shadow: 0 2px 4px rgba(0,0,0,0.05);">
                     <div class="transaction__icon flex align-center justify-center" style="background-color: ${
@@ -1368,10 +1371,6 @@
             .querySelector(".txid")
             .addEventListener("click", (e) => {
               e.stopPropagation(); // Prevent card click
-              const txid = e.target.dataset.txid;
-              if (txid) {
-                window.location.hash = `#/tdx/${txid}`;
-              }
             });
 
           transactionCard.classList.add("interactive");
