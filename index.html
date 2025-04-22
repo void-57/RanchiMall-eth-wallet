@@ -714,7 +714,7 @@
             today.getMonth(),
             today.getDate()
           ).getTime() / 1000;
-        const todayEnd = todayStart + 86399; // End of today (23:59:59)
+        const todayEnd = todayStart + 86399;
 
         if (timestamp >= todayStart && timestamp <= todayEnd) {
           console.log(
@@ -736,16 +736,13 @@
           console.log("Historical rate data:", data);
 
           if (data && data.market_data && data.market_data.current_price) {
-            // Cache the historical rate
             const rates = {
               usd: parseFloat(data.market_data.current_price.usd) || 0,
               inr: parseFloat(data.market_data.current_price.inr) || 0,
             };
 
-            // Save to in-memory cache
             historicalRates[timestamp] = rates;
 
-            // Save to localStorage
             localStorage.setItem(cacheKey, JSON.stringify(rates));
 
             return rates;
@@ -781,6 +778,9 @@
             if (existingToggle) existingToggle.remove();
           }
         }
+
+        updateTransactionDetailsToggle();
+
         convertAllDisplayedCurrency();
         syncCurrencySelector();
       }
@@ -1277,7 +1277,7 @@
             ? shortenAddress(transactionDetails.to)
             : "";
           const txHashShort = shortenAddress(transactionDetails.txid);
-           
+
           transactionCard.innerHTML = `
                   <div class="flex gap-1 align-center w-100 padding-0-5" style="border-radius: 0.5rem; border: 1px solid rgba(var(--text-color), 0.1); padding: 0.75rem; box-shadow: 0 2px 4px rgba(0,0,0,0.05);">
                     <div class="transaction__icon flex align-center justify-center" style="background-color: ${
@@ -1764,6 +1764,20 @@
             <section class="tx-details-container">
               <div class="tx-header">
                 <h2 class="tx-title">Transaction Details</h2>
+                ${currentCurrency !== "eth" && isHistoricApiAvailable
+                  ? html`
+                      <div class="margin-left-auto">
+                        <sm-switch
+                          id="tx_valuation_toggle"
+                          ?checked=${showCurrentValue}
+                        >
+                          <p slot="left" class="margin-right-0-5">
+                            Show current value
+                          </p>
+                        </sm-switch>
+                      </div>
+                    `
+                  : ""}
               </div>
 
               <div id="tx_details_container" class="tx-content">
@@ -1853,7 +1867,12 @@
                     <div class="tx-metrics-grid">
                       <div class="metric-card">
                         <label class="metric-label">Value</label>
-                        <div id="tx_value" class="metric-value"></div>
+                        <div
+                          id="tx_value"
+                          class="metric-value eth-value"
+                          data-eth="${value}"
+                          data-timestamp="${tx.timeStamp || ""}"
+                        ></div>
                       </div>
 
                       <div class="metric-card">
@@ -1863,7 +1882,12 @@
 
                       <div class="metric-card">
                         <label class="metric-label">Transaction Fee</label>
-                        <div id="tx_fee" class="metric-value"></div>
+                        <div
+                          id="tx_fee"
+                          class="metric-value eth-value"
+                          data-eth="${fee}"
+                          data-timestamp="${tx.timeStamp || ""}"
+                        ></div>
                       </div>
 
                       <div class="metric-card">
@@ -1909,7 +1933,6 @@
               getRef("tx_from").value = tx.from;
               getRef("tx_from").addEventListener("click", function (e) {
                 if (!e.target.closest("sm-copy button")) {
-                  // Don't trigger on copy button click
                   window.location.hash = `#/balance/${tx.from}`;
                 }
               });
@@ -1922,7 +1945,6 @@
               if (tx.to) {
                 getRef("tx_to").addEventListener("click", function (e) {
                   if (!e.target.closest("sm-copy button")) {
-                    // Don't trigger on copy button click
                     window.location.hash = `#/balance/${tx.to}`;
                   }
                 });
@@ -1934,21 +1956,67 @@
             if (getRef("tx_hash")) getRef("tx_hash").value = tx.hash;
 
             if (getRef("tx_value")) {
-              getRef("tx_value").className = "metric-value eth-value";
               getRef("tx_value").dataset.eth = value;
+              getRef("tx_value").dataset.timestamp = tx.timeStamp || "";
+              getRef("tx_value").classList.add("eth-value");
               getRef("tx_value").textContent = formatCurrency(value);
             }
 
             if (getRef("tx_gasPrice"))
               getRef("tx_gasPrice").textContent = `${gasPrice} Gwei`;
             if (getRef("tx_fee")) {
-              getRef("tx_fee").className = "metric-value eth-value";
               getRef("tx_fee").dataset.eth = fee;
+              getRef("tx_fee").dataset.timestamp = tx.timeStamp || "";
+              getRef("tx_fee").classList.add("eth-value");
               getRef("tx_fee").textContent = formatCurrency(fee);
             }
             if (getRef("tx_timestamp"))
               getRef("tx_timestamp").textContent = timestamp;
+
+            if (getRef("tx_valuation_toggle")) {
+              // Clear any previous event listeners by replacing with a fresh element
+              const toggle = getRef("tx_valuation_toggle");
+              const toggleParent = toggle.parentElement;
+              const newToggle = toggle.cloneNode(true);
+
+              // Add our event listener to the new element before inserting it
+              newToggle.addEventListener("change", async (e) => {
+                showCurrentValue = e.target.checked;
+                localStorage.setItem(
+                  "eth-wallet-show-current-value",
+                  showCurrentValue
+                );
+
+                // Get elements directly to ensure we update them
+                const valueElement = getRef("tx_value");
+                const feeElement = getRef("tx_fee");
+
+                if (valueElement && valueElement.dataset.eth) {
+                  const ethAmount = parseFloat(valueElement.dataset.eth);
+                  const timestamp = valueElement.dataset.timestamp;
+                  valueElement.textContent = await getConvertedAmount(
+                    ethAmount,
+                    timestamp
+                  );
+                }
+
+                if (feeElement && feeElement.dataset.eth) {
+                  const ethFee = parseFloat(feeElement.dataset.eth);
+                  const timestamp = feeElement.dataset.timestamp;
+                  feeElement.textContent = await getConvertedAmount(
+                    ethFee,
+                    timestamp
+                  );
+                }
+              });
+
+              // Replace the original toggle with our new one
+              toggleParent.replaceChild(newToggle, toggle);
+            }
             convertAllDisplayedCurrency();
+            if (currentCurrency !== "eth" && !isHistoricApiAvailable) {
+              testHistoricalAPIAndRenderToggle();
+            }
           })
           .catch((error) => {
             console.error("Error:", error);
@@ -1995,6 +2063,67 @@
               </div>
             `
           );
+        }
+      }
+      function updateTransactionDetailsToggle() {
+        if (getRef("page_container")?.dataset?.page !== "tdx") return;
+
+        const toggleContainer = document.querySelector(".tx-header");
+        if (!toggleContainer) return;
+
+        const existingToggle =
+          toggleContainer.querySelector(".margin-left-auto");
+
+        if (currentCurrency === "eth") {
+          if (existingToggle) existingToggle.remove();
+          return;
+        }
+
+        if (
+          currentCurrency !== "eth" &&
+          isHistoricApiAvailable &&
+          !existingToggle
+        ) {
+          const toggleDiv = document.createElement("div");
+          toggleDiv.className = "margin-left-auto";
+          toggleDiv.innerHTML = `
+      <sm-switch id="tx_valuation_toggle" ${showCurrentValue ? "checked" : ""}>
+        <p slot="left" class="margin-right-0-5">
+          Show current value
+        </p>
+      </sm-switch>
+    `;
+          toggleContainer.appendChild(toggleDiv);
+
+          const toggle = toggleDiv.querySelector("sm-switch");
+          toggle.addEventListener("change", async (e) => {
+            showCurrentValue = e.target.checked;
+            localStorage.setItem(
+              "eth-wallet-show-current-value",
+              showCurrentValue
+            );
+
+            const valueElement = getRef("tx_value");
+            const feeElement = getRef("tx_fee");
+
+            if (valueElement && valueElement.dataset.eth) {
+              const ethAmount = parseFloat(valueElement.dataset.eth);
+              const timestamp = valueElement.dataset.timestamp;
+              valueElement.textContent = await getConvertedAmount(
+                ethAmount,
+                timestamp
+              );
+            }
+
+            if (feeElement && feeElement.dataset.eth) {
+              const ethFee = parseFloat(feeElement.dataset.eth);
+              const timestamp = feeElement.dataset.timestamp;
+              feeElement.textContent = await getConvertedAmount(
+                ethFee,
+                timestamp
+              );
+            }
+          });
         }
       }
       //ani
